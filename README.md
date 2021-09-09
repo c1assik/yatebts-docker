@@ -2,7 +2,7 @@
 
 ## Building
 ```sh
-https://github.com/c1assik/yatebts-docker.git
+git clone https://github.com/c1assik/yatebts-docker.git
 cd yatebts-docker
 docker build -t yatebts:latest .
 ```
