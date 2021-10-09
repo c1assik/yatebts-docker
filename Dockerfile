@@ -1,5 +1,7 @@
 FROM ubuntu
 
+COPY yate-openssl-1.1.patch .
+
 EXPOSE 8008
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -8,6 +10,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
+	libuhd-dev \
 	git \ 
 	g++ \
 	cmake \
@@ -24,11 +27,25 @@ RUN apt-get install -y \
 	libgusb-dev \
 	rlwrap
 
-RUN svn checkout http://voip.null.ro/svn/yate/trunk yate
-RUN cd yate && ./autogen.sh && ./configure && make install-noapi && ldconfig
+RUN svn checkout -r 5968 http://voip.null.ro/svn/yate/trunk yate
+RUN cd yate && \
+	patch -p0 < ../yate-openssl-1.1.patch && \
+	./autogen.sh && \
+	./configure && \
+	make install-noapi && \
+	ldconfig
 
-RUN svn checkout http://voip.null.ro/svn/yatebts/trunk yatebts
 
-RUN cd yatebts && ./autogen.sh && ./configure && make install
+#Install YateBTS-USRP
+# RUN svn checkout http://voip.null.ro/svn/yatebts/trunk yatebts
+# RUN cd yatebts && ./autogen.sh && ./configure && make install
+# RUN cd /var/www/html && ln -s /usr/local/share/yate/nipc_web yatebts && chmod -R a+w /usr/local/etc/yate
 
-RUN cd /var/www/html && ln -s /usr/local/share/yate/nipc_web yatebts && chmod -R a+w /usr/local/etc/yate
+RUN git clone https://github.com/grant-h/YateBTS-USRP
+
+RUN cd YateBTS-USRP && \
+	./autogen.sh && \
+	./configure && \
+	make install
+
+ RUN cd /var/www/html && ln -s /usr/local/share/yate/nib_web nib && chmod -R a+w /usr/local/etc/yate
